@@ -612,12 +612,13 @@ export function getLandUseCategories() {
 }
 
 /**
- * Verifică dacă data curentă este înainte de 31 martie 2026
- * pentru a determina dacă reducerea de 10% este aplicabilă
+ * Verifică dacă data curentă este înainte sau egală cu 31 martie 2026
+ * pentru a determina dacă reducerea de 10% este aplicabilă.
+ * Reducerea este valabilă PÂNĂ LA (inclusiv) 31 martie 2026.
  */
 export function isEarlyPaymentEligible(): boolean {
   const now = new Date();
-  const deadline = new Date(2026, 2, 31); // 31 martie 2026 (luna 2 = martie în JS, indexare de la 0)
+  const deadline = new Date(2026, 2, 31, 23, 59, 59); // 31 martie 2026, 23:59:59 (luna 2 = martie în JS, indexare de la 0)
   return now <= deadline;
 }
 

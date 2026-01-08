@@ -105,6 +105,34 @@ export default function CompositeTaxCalculator() {
     return `${scenarioLabel}, ${props.areaM2} m²`;
   };
 
+  // Helper pentru resetarea formularului vehicul
+  const resetVehicleForm = () => {
+    setVehicleType("");
+    setVehicleCapacity("");
+    setVehicleEuro("");
+    setVehicleHybridDiscount("0");
+  };
+
+  // Helper pentru resetarea formularului clădire
+  const resetBuildingForm = () => {
+    setBuildingType("");
+    setBuildingArea("");
+    setBuildingHasUtilities(true);
+    setBuildingCityRank("");
+    setBuildingCityZone("");
+    setBuildingLocalRate(0.1);
+    setBuildingSpecialUsage("none");
+  };
+
+  // Helper pentru resetarea formularului teren
+  const resetLandForm = () => {
+    setLandScenario("");
+    setLandAreaM2("");
+    setLandCityZone("");
+    setLandCityRank("");
+    setLandUseCategory("");
+  };
+
   // Adaugă vehicul
   const handleAddVehicle = () => {
     try {
@@ -149,10 +177,7 @@ export default function CompositeTaxCalculator() {
       }
 
       // Reset formular
-      setVehicleType("");
-      setVehicleCapacity("");
-      setVehicleEuro("");
-      setVehicleHybridDiscount("0");
+      resetVehicleForm();
     } catch (error) {
       console.error("Eroare la adăugarea vehiculului:", error);
     }
@@ -197,13 +222,7 @@ export default function CompositeTaxCalculator() {
       }
 
       // Reset formular
-      setBuildingType("");
-      setBuildingArea("");
-      setBuildingHasUtilities(true);
-      setBuildingCityRank("");
-      setBuildingCityZone("");
-      setBuildingLocalRate(0.1);
-      setBuildingSpecialUsage("none");
+      resetBuildingForm();
     } catch (error) {
       console.error("Eroare la adăugarea clădirii:", error);
     }
@@ -246,11 +265,7 @@ export default function CompositeTaxCalculator() {
       }
 
       // Reset formular
-      setLandScenario("");
-      setLandAreaM2("");
-      setLandCityZone("");
-      setLandCityRank("");
-      setLandUseCategory("");
+      resetLandForm();
     } catch (error) {
       console.error("Eroare la adăugarea terenului:", error);
     }
@@ -291,6 +306,25 @@ export default function CompositeTaxCalculator() {
       setLandCityRank(props.cityRank || "");
       setLandUseCategory(props.landUseCategory || "");
     }
+  };
+
+  // Helper pentru validarea formularului teren
+  const isLandFormValid = (): boolean => {
+    if (!landScenario || !landAreaM2) return false;
+    
+    if (landScenario === "intravilan_construction") {
+      return !!(landCityZone && landCityRank);
+    }
+    
+    if (landScenario === "intravilan_other_large") {
+      return !!(landCityZone && landCityRank && landUseCategory);
+    }
+    
+    if (landScenario === "extravilan") {
+      return !!(landCityRank && landUseCategory);
+    }
+    
+    return false;
   };
 
   // Calculează totalurile
@@ -672,15 +706,7 @@ export default function CompositeTaxCalculator() {
               <Button
                 onClick={handleAddLand}
                 className="w-full"
-                disabled={
-                  !landScenario ||
-                  !landAreaM2 ||
-                  (landScenario === "intravilan_construction" &&
-                    (!landCityZone || !landCityRank)) ||
-                  (landScenario === "intravilan_other_large" &&
-                    (!landCityZone || !landCityRank || !landUseCategory)) ||
-                  (landScenario === "extravilan" && (!landCityRank || !landUseCategory))
-                }
+                disabled={!isLandFormValid()}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {editingAssetId ? "Actualizează teren" : "Adaugă teren"}
