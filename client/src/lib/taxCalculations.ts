@@ -610,3 +610,39 @@ export function getLandUseCategories() {
     { value: "construction", label: "Teren cu construcții (extravilan)" },
   ];
 }
+
+// Constante pentru reducerea de plată anticipată
+export const EARLY_PAYMENT_DISCOUNT_DEADLINE = new Date(2026, 2, 31, 23, 59, 59); // 31 martie 2026, 23:59:59
+export const EARLY_PAYMENT_DISCOUNT_RATE = 0.1; // 10%
+
+/**
+ * Verifică dacă data curentă este înainte sau egală cu 31 martie 2026
+ * pentru a determina dacă reducerea de 10% este aplicabilă.
+ * Reducerea este valabilă PÂNĂ LA (inclusiv) 31 martie 2026.
+ */
+export function isEarlyPaymentEligible(): boolean {
+  const now = new Date();
+  return now <= EARLY_PAYMENT_DISCOUNT_DEADLINE;
+}
+
+/**
+ * Aplică reducerea de 10% pentru plata anticipată până la 31 martie
+ * @param tax - Impozitul inițial calculat
+ * @param applyDiscount - Dacă se aplică reducerea de 10%
+ * @returns Obiect cu impozitul original, reducerea și impozitul final
+ */
+export function applyEarlyPaymentDiscount(tax: number, applyDiscount: boolean): {
+  originalTax: number;
+  discount: number;
+  finalTax: number;
+} {
+  if (!applyDiscount) {
+    return { originalTax: tax, discount: 0, finalTax: tax };
+  }
+  const discount = tax * EARLY_PAYMENT_DISCOUNT_RATE;
+  return {
+    originalTax: tax,
+    discount: discount,
+    finalTax: tax - discount,
+  };
+}

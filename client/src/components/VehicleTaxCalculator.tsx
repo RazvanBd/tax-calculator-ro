@@ -12,11 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   calculateVehicleTax,
   getVehicleTypes,
   getEuroNorms,
   VehicleTaxInput,
+  applyEarlyPaymentDiscount,
+  isEarlyPaymentEligible,
 } from "@/lib/taxCalculations";
 import { AlertCircle, CheckCircle2, Car, Bike, Bus, Circle, Gauge, Leaf, Zap } from "lucide-react";
 
@@ -25,6 +28,7 @@ export default function VehicleTaxCalculator() {
   const [capacity, setCapacity] = useState<string>("");
   const [euro, setEuro] = useState<string>("");
   const [hybridDiscount, setHybridDiscount] = useState<string>("0"); // % 0-30 pentru hibride ≤50g
+  const [applyDiscount, setApplyDiscount] = useState<boolean>(isEarlyPaymentEligible());
   const [result, setResult] = useState<{
     tax: number;
     breakdown: string;
@@ -63,7 +67,7 @@ export default function VehicleTaxCalculator() {
   React.useEffect(() => {
     recompute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicleType, capacity, euro, hybridDiscount]);
+  }, [vehicleType, capacity, euro, hybridDiscount, applyDiscount]);
 
   const handleCalculate = () => {
     setError("");
@@ -236,6 +240,23 @@ export default function VehicleTaxCalculator() {
         )}
       </div>
 
+      {/* Bifă reducere 10% */}
+      <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <Checkbox
+          id="early-payment-discount"
+          checked={applyDiscount}
+          onCheckedChange={(checked) => setApplyDiscount(checked as boolean)}
+        />
+        <Label htmlFor="early-payment-discount" className="cursor-pointer flex-1">
+          <span className="font-semibold text-blue-900">
+            Reducere de 10% (plată anticipată până la 31 martie 2026)
+          </span>
+          <p className="text-xs text-blue-700 mt-1">
+            Reducerea se aplică pentru plata integrală a impozitului până la 31 martie a anului fiscal curent, conform legislației în vigoare.
+          </p>
+        </Label>
+      </div>
+
       {/* Mesaj de eroare */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
@@ -245,43 +266,64 @@ export default function VehicleTaxCalculator() {
       )}
 
       {/* Rezultat */}
-      {result && (
-        <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <div className="flex gap-3 mb-4">
-            <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
-            <div>
-              <h3 className="font-bold text-green-900">Rezultatul calculului impozitului</h3>
-              <p className="text-sm text-green-700">Conform Legii 239/2025</p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="bg-white rounded-lg p-4 border border-green-100">
-              <p className="text-sm text-slate-600 mb-1">Suma anuală a impozitului:</p>
-              <p className="text-4xl font-bold text-green-700">
-                {result.tax.toFixed(2)} lei
-              </p>
+      {result && (() => {
+        const discountResult = applyEarlyPaymentDiscount(result.tax, applyDiscount);
+        return (
+          <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <div className="flex gap-3 mb-4">
+              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <div>
+                <h3 className="font-bold text-green-900">Rezultatul calculului impozitului</h3>
+                <p className="text-sm text-green-700">Conform Legii 239/2025</p>
+              </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 border border-green-100">
-              <p className="text-sm text-slate-600 mb-2">Detalii calcul:</p>
-              <p className="text-sm font-mono text-slate-700">
-                {result.breakdown}
-              </p>
-            </div>
-
-            {euro === "hybrid_le_50" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
-                  <strong>Notă:</strong> Pentru hibride ≤50g CO₂/km se poate
-                  aplica o reducere locală de până la 30% (stabilită de
-                  consiliul local).
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 border border-green-100">
+                <p className="text-sm text-slate-600 mb-1">Impozit anual (fără reducere):</p>
+                <p className="text-4xl font-bold text-green-700">
+                  {discountResult.originalTax.toFixed(2)} lei
                 </p>
               </div>
-            )}
-          </div>
-        </Card>
-      )}
+
+              {applyDiscount && (
+                <>
+                  <div className="bg-white rounded-lg p-4 border border-blue-100">
+                    <p className="text-sm text-slate-600 mb-1">Reducere 10% (plată anticipată):</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      -{discountResult.discount.toFixed(2)} lei
+                    </p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-300">
+                    <p className="text-sm text-slate-600 mb-1">Impozit final de plată:</p>
+                    <p className="text-4xl font-bold text-blue-900">
+                      {discountResult.finalTax.toFixed(2)} lei
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <div className="bg-white rounded-lg p-4 border border-green-100">
+                <p className="text-sm text-slate-600 mb-2">Detalii calcul:</p>
+                <p className="text-sm font-mono text-slate-700">
+                  {result.breakdown}
+                </p>
+              </div>
+
+              {euro === "hybrid_le_50" && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-xs text-blue-800">
+                    <strong>Notă:</strong> Pentru hibride ≤50g CO₂/km se poate
+                    aplica o reducere locală de până la 30% (stabilită de
+                    consiliul local).
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* Butoane */}
       <div className="flex gap-3">

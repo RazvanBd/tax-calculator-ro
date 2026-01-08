@@ -2,7 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VehicleTaxCalculator from "@/components/VehicleTaxCalculator";
 import BuildingTaxCalculator from "@/components/BuildingTaxCalculator";
 import LandTaxCalculator from "@/components/LandTaxCalculator";
-import { Car, Building2, Landmark } from "lucide-react";
+import CompositeTaxCalculator from "@/components/CompositeTaxCalculator";
+import { Car, Building2, Landmark, Calculator } from "lucide-react";
 
 /**
  * Home page with vehicle and building tax calculators
@@ -46,7 +47,7 @@ export default function Home() {
 
           {/* Taburi */}
           <Tabs defaultValue="vehicle" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="vehicle" className="gap-2">
                 <Car className="w-4 h-4" />
                 Impozit vehicul
@@ -58,6 +59,10 @@ export default function Home() {
               <TabsTrigger value="land" className="gap-2">
                 <Landmark className="w-4 h-4" />
                 Impozit teren
+              </TabsTrigger>
+              <TabsTrigger value="composite" className="gap-2">
+                <Calculator className="w-4 h-4" />
+                Calcul compus
               </TabsTrigger>
             </TabsList>
 
@@ -100,6 +105,19 @@ export default function Home() {
                   funcție de zona, rang și categoria de folosință.
                 </p>
                 <LandTaxCalculator />
+              </div>
+            </TabsContent>
+
+            {/* Tab calcul compus */}
+            <TabsContent value="composite" className="space-y-6">
+              <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                  Calcul impozit compus
+                </h2>
+                <p className="text-slate-600 mb-6">
+                  Adaugă multiple bunuri (vehicule, clădiri, terenuri) și calculează impozitul total.
+                </p>
+                <CompositeTaxCalculator />
               </div>
             </TabsContent>
           </Tabs>
