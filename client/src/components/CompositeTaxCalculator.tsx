@@ -533,7 +533,9 @@ export default function CompositeTaxCalculator() {
                   <Label>Cotă locală (%)</Label>
                   <div className="flex items-center gap-4">
                     <Slider
+                      // Convert: decimal (0.08-0.20) -> slider value (8-20) for display
                       value={[Math.round(buildingLocalRate * 10000) / 100]}
+                      // Convert: slider value (8-20) -> decimal (0.08-0.20) for storage
                       onValueChange={(vals) => setBuildingLocalRate((vals[0] ?? 8) / 100)}
                       min={8}
                       max={20}
