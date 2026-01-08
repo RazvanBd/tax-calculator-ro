@@ -22,6 +22,7 @@ import {
   applyEarlyPaymentDiscount,
   isEarlyPaymentEligible,
 } from "@/lib/taxCalculations";
+import { isDiscountAvailable } from "@/lib/dateUtils";
 import { AlertCircle, CheckCircle2, Building, Ruler, MapPin, Landmark, Leaf, Circle } from "lucide-react";
 
 export default function LandTaxCalculator() {
@@ -280,67 +281,68 @@ export default function LandTaxCalculator() {
       )}
 
       {/* Rezultat */}
-      {result && (() => {
-        const discountResult = applyEarlyPaymentDiscount(result.tax, applyDiscount);
-        return (
-          <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <div className="flex gap-3 mb-4">
-              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
-              <div>
-                <h3 className="font-bold text-green-900">Rezultatul calculului impozitului pe teren</h3>
-                <p className="text-sm text-green-700">Conform Legii 239/2025</p>
+      {result && (
+        <>
+          {/* Discount Warning - only show if discount is available */}
+          {isDiscountAvailable() && (
+            <Card className="p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-400 dark:border-amber-600/70">
+              <div className="flex gap-3">
+                <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-amber-900 dark:text-amber-200 mb-1">💰 Reducere de 10% disponibilă!</h4>
+                  <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+                    Dacă plătiți taxa <strong>până la 31 martie 2026</strong>, beneficiați de o reducere de <strong>10%</strong>.
+                  </p>
+                  <div className="bg-white dark:bg-slate-800/80 rounded p-2 border border-amber-200 dark:border-amber-700/50">
+                    <p className="text-xs text-amber-700 dark:text-amber-200">
+                      <span className="font-semibold">Taxa cu reducere (10%):</span> <span className="text-base font-bold text-amber-700 dark:text-amber-300">{(result.tax * 0.9).toFixed(2)} lei</span>
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Taxa normală: {result.tax.toFixed(2)} lei</p>
+                  </div>
+                </div>
               </div>
+            </Card>
+          )}
+        
+          <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40 border-green-200 dark:border-green-700/70">
+          <div className="flex gap-3 mb-4">
+            <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-green-900 dark:text-green-200">Rezultatul calculului impozitului pe teren</h3>
+              <p className="text-sm text-green-700 dark:text-green-300">Conform Legii 239/2025</p>
             </div>
 
-            <div className="space-y-3">
-              <div className="bg-white rounded-lg p-4 border border-green-100">
-                <p className="text-sm text-slate-600 mb-1">Impozit anual (fără reducere):</p>
-                <p className="text-4xl font-bold text-green-700">
-                  {discountResult.originalTax.toFixed(2)} lei
-                </p>
-              </div>
-
-              {applyDiscount && (
-                <>
-                  <div className="bg-white rounded-lg p-4 border border-blue-100">
-                    <p className="text-sm text-slate-600 mb-1">Reducere 10% (plată anticipată):</p>
-                    <p className="text-2xl font-bold text-blue-700">
-                      -{discountResult.discount.toFixed(2)} lei
-                    </p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-300">
-                    <p className="text-sm text-slate-600 mb-1">Impozit final de plată:</p>
-                    <p className="text-4xl font-bold text-blue-900">
-                      {discountResult.finalTax.toFixed(2)} lei
-                    </p>
-                  </div>
-                </>
-              )}
-
-              <div className="bg-white rounded-lg p-4 border border-green-100">
-                <p className="text-sm text-slate-600 mb-2">Detalii calcul:</p>
-                <p className="text-sm font-mono text-slate-700">
-                  {result.breakdown}
-                </p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
-                  <strong>Notă:</strong> Calcul estimativ. Suma finală poate varia în
-                  funcție de deciziile consiliului local și de eventuale scutiri.
-                </p>
-              </div>
+          <div className="space-y-3">
+            <div className="bg-white dark:bg-slate-800/80 rounded-lg p-4 border border-green-100 dark:border-green-700/50">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-1">Suma anuală a impozitului:</p>
+              <p className="text-4xl font-bold text-green-700 dark:text-green-400">
+                {result.tax.toFixed(2)} lei
+              </p>
             </div>
-          </Card>
-        );
-      })()}
+
+            <div className="bg-white dark:bg-slate-800/80 rounded-lg p-4 border border-green-100 dark:border-green-700/50">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">Detalii calcul:</p>
+              <p className="text-sm font-mono text-slate-700 dark:text-slate-300">
+                {result.breakdown}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-lg p-3">
+              <p className="text-xs text-blue-800 dark:text-blue-200">
+                <strong>Notă:</strong> Calcul estimativ. Suma finală poate varia în
+                funcție de deciziile consiliului local și de eventuale scutiri.
+              </p>
+            </div>
+          </div>
+        </Card>
+        </>
+      )}
 
       {/* Butoane */}
       <div className="flex gap-3">
         <Button
           onClick={handleCalculate}
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
           size="lg"
         >
           Calculează impozitul pe teren
@@ -348,7 +350,7 @@ export default function LandTaxCalculator() {
         <Button
           onClick={handleReset}
           variant="outline"
-          className="flex-1"
+          className="flex-1 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
           size="lg"
         >
           Resetează
@@ -356,9 +358,9 @@ export default function LandTaxCalculator() {
       </div>
 
       {/* Informații ajutor */}
-      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-        <h4 className="font-semibold text-slate-900 mb-2">Scenarii de impozitare pe teren:</h4>
-        <div className="text-sm text-slate-700 space-y-2">
+      <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+        <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Scenarii de impozitare pe teren:</h4>
+        <div className="text-sm text-slate-700 dark:text-slate-300 space-y-2">
           <p>
             <strong>Intravilan (teren cu construcții):</strong> Terenul amplasat în
             intravilan, înregistrat ca teren cu construcții. Se utilizează tabel direct cu
